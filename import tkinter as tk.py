@@ -39,7 +39,7 @@ def show_forecasting_information():
 
 # Create the main window
 root = tk.Tk()
-root.title("Predictive Maintenance System App")
+root.title("Predictive Maintenance System Apps")
 root.geometry("1000x500")
 root.configure(bg='#238BD6')  # Set background color
 
