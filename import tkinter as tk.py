@@ -36,7 +36,7 @@ def show_forecasting_information():
 
 # Create the main window
 root = tk.Tk()
-root.title("Predictive Maintenance System")
+root.title("Predictive Maintenance System App")
 root.geometry("1000x500")
 
 # Create and add widgets
