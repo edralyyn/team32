@@ -1,0 +1,39 @@
+---
+- name: Create main folder and subfolders, convert syslog to CSV, and copy to sub1
+  hosts: localhost
+  become: true
+  vars:
+    main_folder_path: "/home/jkvcombo/Downloads/main/"
+    script_path: "/home/jkvcombo/Downloads/convert_syslog.py"
+
+  tasks:
+    - name: Create main folder
+      file:
+        path: "{{ main_folder_path }}"
+        state: directory
+
+    - name: Create subfolder sub1
+      file:
+        path: "{{ main_folder_path }}/sub1"
+        state: directory
+
+    - name: Create subfolder sub2
+      file:
+        path: "{{ main_folder_path }}/sub2"
+        state: directory
+
+    - name: Copy Python script to local machine
+      copy:
+        src: "convert_syslog.py"
+        dest: "{{ script_path }}"
+        mode: '0755'
+
+    - name: Convert syslog to CSV using Python script
+      command: python3 "{{ script_path }}"
+      args:
+        creates: "{{ main_folder_path }}/sub1/syslog.csv"
+
+    - name: Copy syslog.csv file to sub1
+      copy:
+        src: "{{ main_folder_path }}/sub1/syslog.csv"
+        dest: "{{ main_folder_path }}/sub1/syslog.csv"
