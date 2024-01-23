@@ -2,11 +2,12 @@ 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
 
 import subprocess
 import re
+import sys
 
-def scan_devices():
+def scan_devices(local_ip):
     try:
         
-        result = subprocess.run(["sudo", "nmap", '-sP', '192.168.1.0/24'], capture_output=True, text=True, check=True)
+        result = subprocess.run(["sudo", "nmap", '-sP', local_ip + "/24"], capture_output=True, text=True, check=True)
 
         
         pattern = re.compile(r"(\d+\.\d+\.\d+\.\d+)")
@@ -18,14 +19,19 @@ def scan_devices():
         return []
 
 def main():
-    connected_devices = scan_devices()
+    if len(sys.argv) != 2:
+        print("Usage: python3 your_script.py <local_ip>")
+        sys.exit(1)
+
+    local_ip = sys.argv[1]
+    connected_devices = scan_devices(local_ip)
 
     if connected_devices:
-        print("Running devices:")
+        print("Connected devices:")
         for device in connected_devices:
             print(device)
     else:
-        print("No running devices found.")
+        print("No connected devices found.")
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     main()
