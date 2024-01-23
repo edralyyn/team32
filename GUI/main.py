@@ -9,10 +9,10 @@ def on_collect_click(information_text):
 
     if result:
         try:
-            subprocess.run(["python", "other_file.py"], check=True)
-            information_text.insert(tk.END, "collect clicked. Collecting data...\n")
-        except subprocess.CalledProcessError:
-            information_text.insert(tk.END, "Error running other_file.py\n")
+            output = subprocess.check_output(["python", "other_file.py"], text=True)
+            information_text.insert(tk.END, f"collect clicked. Collecting data...\n{output}\n")
+        except subprocess.CalledProcessError as e:
+            information_text.insert(tk.END, f"Error running other_file.py: {e}\n")
 
 def on_forecast_click():
 
