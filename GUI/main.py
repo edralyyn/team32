@@ -17,7 +17,7 @@ def on_collect_click(information_text):
             information_text.insert(tk.END, f"Error running other_file.py: {e}\n")
 
 # Load your model from the H5 file
-model = tf.keras.models.load_model('PD1-1.h5')
+model = tf.keras.models.load_model('/home/vboxuser/Desktop/git/team32/GUI/PD1-1.h5')
 
 def on_forecast_click():
 

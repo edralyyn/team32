@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox, Toplevel
 import subprocess
+import tensorflow as tf
+import numpy as np
 
 def on_collect_click(information_text):
 
@@ -9,10 +11,13 @@ def on_collect_click(information_text):
 
     if result:
         try:
-            output = subprocess.check_output(["python3", "/home/jkvcombo/Downloads/gboom.py"], text=True)
+            output = subprocess.check_output(["python3", "GUI-Ansible-connection/gboom.py"], text=True)
             information_text.insert(tk.END, f"collect clicked. Collecting data...\n{output}\n")
         except subprocess.CalledProcessError as e:
             information_text.insert(tk.END, f"Error running other_file.py: {e}\n")
+
+# Load your model from the H5 file
+model = tf.keras.models.load_model('/home/vboxuser/Desktop/git/team32/PD1-1.h5')
 
 def on_forecast_click():
 
@@ -21,10 +26,21 @@ def on_forecast_click():
 
     if result:
         try:
-            output = subprocess.check_output(["python", "forecast_file.py"], text=True)
+            # Perform forecasting using your loaded model
+            # For example, you can generate some dummy input data for demonstration
+            input_data = np.random.rand(10, 50)  # Adjust input_shape according to your model
+            
+            # Perform prediction using the loaded model
+            predictions = model.predict(input_data)
+            
+            # Process predictions as needed
+            # For demonstration purposes, you can convert predictions to a string
+            output = "\n".join([str(prediction) for prediction in predictions])
+            
+            # Show forecasting information
             show_forecasting_information(output, None)
-        except subprocess.CalledProcessError as e:
-            show_forecasting_information(None, f"Error running forecast_file.py: {e}")
+        except Exception as e:
+            show_forecasting_information(None, f"Error during forecasting: {e}")
 
 def show_forecasting_information(output, error_output):
     # Create a new window for forecasting information
