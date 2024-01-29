@@ -16,7 +16,7 @@ def on_collect_click(information_text):
             output = subprocess.check_output(["python3", "GUI-Ansible-connection/gboom.py"], text=True)
             information_text.insert(tk.END, f"collect clicked. Collecting data...\n{output}\n")
         except subprocess.CalledProcessError as e:
-            information_text.insert(tk.END, f"Error running other_file.py: {e}\n")
+            information_text.insert(tk.END, f"Error running gboom.py: {e}\n")
 
 #Fetch Model
 current_directory = os.getcwd()
@@ -59,7 +59,7 @@ def show_forecasting_information(output, error_output):
     forecasting_label = tk.Label(forecasting_window, text="Forecasting information:", bg='#238BD6', fg='black')  # Set text and background color
     forecasting_label.pack(pady=10)
 
-    forecasting_text = tk.Text(forecasting_window, height=10, width=50, fg='black')  # Set text and background color
+    forecasting_text = tk.Text(forecasting_window, fg='black')  # Set text and background color
     if output is not None:
         forecasting_text.insert(tk.END, f"\n{output}")
     elif error_output is not None:
@@ -88,17 +88,17 @@ def customize_gui(background_color, window_size):
 
     # Create a frame for centering buttons vertically
     center_frame = tk.Frame(root, bg=background_color)
-    center_frame.pack(side=tk.LEFT, padx=30, pady=(root.winfo_reqheight() // 0.8))
+    center_frame.pack(side=tk.LEFT, padx=30, pady=(root.winfo_reqheight() // 0.8), fill=tk.Y)
 
-    # Create the first button
+    # Collect Button
     collect = tk.Button(center_frame, text="Collect", command=lambda: on_collect_click(information_text), **button_style)
-    collect.pack(pady=10)
+    collect.pack(pady=10, fill=tk.X)
 
-    # Create the second button
+    # Forecast Button
     forecast = tk.Button(center_frame, text="Forecast", command=on_forecast_click, **button_style)
-    forecast.pack(pady=10)
+    forecast.pack(pady=10, fill=tk.X)
 
-    # Create a Text widget for information display
+    # Info Display Widget
     information_text = tk.Text(root, height=35, width=90, wrap=tk.WORD)
     information_text.pack(side=tk.RIGHT, padx=40, pady=10)
 
