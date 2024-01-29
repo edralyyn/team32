@@ -18,5 +18,5 @@ def convert_syslog_to_csv(input_file, output_file):
 if __name__ == "__main__":
     input_log_file = '/var/log/syslog'
     output_csv_file = '/home/jkvcombo/Downloads/main/sub1/syslog.csv'  
-
+    # convert syslog fetch file to csv
     convert_syslog_to_csv(input_log_file, output_csv_file)
