@@ -3,6 +3,8 @@ from tkinter import messagebox, Toplevel
 import subprocess
 import tensorflow as tf
 import numpy as np
+import os
+from tensorflow.keras.models import load_model
 
 def on_collect_click(information_text):
 
@@ -11,13 +13,16 @@ def on_collect_click(information_text):
 
     if result:
         try:
-            output = subprocess.check_output(["python", "other_file.py"], text=True)
+            output = subprocess.check_output(["python3", "GUI-Ansible-connection/gboom.py"], text=True)
             information_text.insert(tk.END, f"collect clicked. Collecting data...\n{output}\n")
         except subprocess.CalledProcessError as e:
             information_text.insert(tk.END, f"Error running other_file.py: {e}\n")
 
-# Load your model from the H5 file
-model = tf.keras.models.load_model('/home/vboxuser/Desktop/git/team32/GUI/PD1-1.h5')
+#Fetch Model
+current_directory = os.getcwd()
+model_file = 'PD1-1.h5'
+model_path = os.path.join(current_directory, model_file)
+model = load_model(model_path)
 
 def on_forecast_click():
 
@@ -28,7 +33,7 @@ def on_forecast_click():
         try:
             # Perform forecasting using your loaded model
             # For example, you can generate some dummy input data for demonstration
-            input_data = np.random.rand(10, 50)  # Adjust input_shape according to your model
+            input_data = np.random.rand(50, 10, 1)  # Adjust input_shape according to your model
             
             # Perform prediction using the loaded model
             predictions = model.predict(input_data)
