@@ -39,7 +39,7 @@ def run_ansible_playbook():
         print(f"Error running Ansible playbook: {e}")
 
 if __name__ == "__main__":
-    # Define your network details
+    # Define your network details / Problem on collect connected ip on local device
     network_prefix = "192.168.1"  # Change this to your network's prefix
     start_range = 34
     end_range = 50  # Adjust the range based on your network size
