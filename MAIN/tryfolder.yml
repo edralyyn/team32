@@ -32,9 +32,9 @@
     - name: Convert syslog to CSV using Python script
       command: python3 "{{ script_path }}"
       args:
-        creates: "{{ main_folder_path }}/END DEVICE/syslog.csv"
+        creates: "{{ main_folder_path }}/END DEVICE/end-device_syslog.csv"
 
     - name: Copy syslog.csv file to END DEVICE
       copy:
-        src: "{{ main_folder_path }}/END DEVICE/syslog.csv"
-        dest: "{{ main_folder_path }}/END DEVICE/syslog.csv"
+        src: "{{ main_folder_path }}/END DEVICE/end-device_syslog.csv"
+        dest: "{{ main_folder_path }}/END DEVICE/end-device_syslog.csv"
