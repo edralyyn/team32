@@ -33,10 +33,12 @@ def save_to_inventory(reachable_devices):
 
 def run_ansible_playbook():
     try:
-        subprocess.run(['ansible-playbook', 'tryfolder.yml'], check=True)
+        subprocess.run(['ansible-playbook', 'createfolder.yml'], check=True)
         print("Ansible playbook executed successfully.")
     except subprocess.CalledProcessError as e:
-        print(f"Error running Ansible playbook: {e}")
+        print(f"Error running scanip.py: {e}")
+        information_text.insert(tk.END, f"Error running scanip.py: {e}\n")
+
 
 if __name__ == "__main__":
     # Define your network details / Problem on collect connected ip on local device
