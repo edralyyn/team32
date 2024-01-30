@@ -13,10 +13,10 @@ def on_collect_click(information_text):
 
     if result:
         try:
-            output = subprocess.check_output(["python3", "GUI-Ansible-connection/gboom.py"], text=True)
+            output = subprocess.check_output(["python3", "scanip.py"], text=True)
             information_text.insert(tk.END, f"collect clicked. Collecting data...\n{output}\n")
         except subprocess.CalledProcessError as e:
-            information_text.insert(tk.END, f"Error running gboom.py: {e}\n")
+            information_text.insert(tk.END, f"Error running scanip.py: {e}\n")
 
 #Fetch Model
 current_directory = os.getcwd()
