@@ -8,7 +8,7 @@ from tensorflow.keras.models import load_model
 
 def on_collect_click(information_text):
 
-    #Warning for collects
+    #Warning for collectss
     result = messagebox.askyesno("Warning", "This will collect data. Do you want to proceed?")
 
     if result:

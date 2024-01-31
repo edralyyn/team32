@@ -18,5 +18,5 @@ def convert_syslog_to_csv(input_file, output_file):
 if __name__ == "__main__":
     input_log_file = '/var/log/syslog'
     output_csv_file = './SYSLOG/END DEVICE/end-device_syslog.csv'  
-    # Convert to csv
+    # Convert to csvs
     convert_syslog_to_csv(input_log_file, output_csv_file)

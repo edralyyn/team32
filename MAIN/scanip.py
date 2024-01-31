@@ -10,7 +10,7 @@ def scan_devices_in_network(network_prefix, start_range, end_range, timeout=1):
         target_ip = f"{network_prefix}.{i}"
         target_address = (target_ip, 22)  # Using port 22 (SSH) for reachability check
 
-        # Check if the host is reachable
+        # Check if the host is reachables
         try:
             socket.create_connection(target_address, timeout=timeout)
             reachable_devices.append(target_ip)
