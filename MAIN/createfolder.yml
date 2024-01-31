@@ -33,7 +33,7 @@
       command: python3 "{{ script_path }}"
       args:
         creates: "{{ main_folder_path }}/END DEVICE/end-device_syslog.csv"
-
+    #copy
     - name: Copy syslog.csv file to END DEVICE
       copy:
         src: "{{ main_folder_path }}/END DEVICE/end-device_syslog.csv"
