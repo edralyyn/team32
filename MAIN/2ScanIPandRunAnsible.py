@@ -3,6 +3,14 @@ import socket
 import configparser
 import subprocess
 
+def read_network_interface(filename):
+    try:
+        with open(filename, 'r') as file:
+            return file.read().strip()
+    except Exception as e:
+        print(f"Error reading network interface from file: {e}")
+        return None
+
 def scan_devices_in_network(network_prefix, start_range, end_range, timeout=1):
     reachable_devices = []
 
@@ -10,7 +18,7 @@ def scan_devices_in_network(network_prefix, start_range, end_range, timeout=1):
         target_ip = f"{network_prefix}.{i}"
         target_address = (target_ip, 22)  # Using port 22 (SSH) for reachability check
 
-        # Check if the host is reachables
+        # Check if the host is reachable
         try:
             socket.create_connection(target_address, timeout=timeout)
             reachable_devices.append(target_ip)
@@ -22,7 +30,7 @@ def scan_devices_in_network(network_prefix, start_range, end_range, timeout=1):
 
 def save_to_inventory(reachable_devices):
     config = configparser.ConfigParser()
-    config['hosts'] = {'ip_addresses': ', '.join(reachable_devices)}
+    config['localhosts'] = {'ip_addresses': ', '.join(reachable_devices)}
 
     try:
         with open('inventory.ini', 'w') as configfile:
@@ -39,13 +47,16 @@ def run_ansible_playbook():
         print(f"Error running Ansible playbook: {e}")
 
 if __name__ == "__main__":
-    # Define your network details / Problem on collect connected ip on local device
-    network_prefix = "192.168.1"  # Change this to your network's prefix of the device
-    start_range = 34
-    end_range = 50  # Adjust the range based on your network sizes
+    # Read network interface from file
+    network_interface_file = "./IPnetwork/network_address.txt"  # Change this to the correct file path
+    network_prefix = read_network_interface(network_interface_file)
 
-    reachable_devices = scan_devices_in_network(network_prefix, start_range, end_range)
-    save_to_inventory(reachable_devices)
+    if network_prefix:
+        start_range = 101
+        end_range = 115  # Adjust the range based on your network sizes
 
-    # Run Ansible playbook
-    run_ansible_playbook()
+        reachable_devices = scan_devices_in_network(network_prefix, start_range, end_range)
+        save_to_inventory(reachable_devices)
+        run_ansible_playbook()
+    else:
+        print("Failed to read network interface from file. Please check the file path.")

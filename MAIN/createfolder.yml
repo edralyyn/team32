@@ -2,10 +2,14 @@
 ---
 - name: Create main folder and subfolders, convert syslog to CSV, and copy to sub1
   hosts: localhost
+  gather_facts: no
   
   vars:
     main_folder_path: "./SYSLOG/"
+    end_devices_path: "{{ main_folder_path }}/End devices"
+    intermediary_devices_path: "{{ main_folder_path }}/Intermediary Devices"
     script_path: "./convert_syslog.py"
+    ip_network_dir: "./IPnetwork"  # Path to the directory containing network addresses
 
   tasks:
     - name: Create main folder
@@ -13,28 +17,12 @@
         path: "{{ main_folder_path }}"
         state: directory
 
-    - name: Create subfolder END DEVICE
+    - name: Create subfolder End devices
       file:
-        path: "{{ main_folder_path }}/END DEVICE"
+        path: "{{ end_devices_path }}"
         state: directory
 
-    - name: Create subfolder INTERMEDIARY DEVICE
+    - name: Create subfolder Intermediary Devices
       file:
-        path: "{{ main_folder_path }}/INTERMEDIARY DEVICE"
+        path: "{{ intermediary_devices_path }}"
         state: directory
-
-    - name: Copy Python script to local machine
-      copy:
-        src: "convert_syslog.py"
-        dest: "{{ script_path }}"
-        mode: '0755'
-
-    - name: Convert syslog to CSV using Python script
-      command: python3 "{{ script_path }}"
-      args:
-        creates: "{{ main_folder_path }}/END DEVICE/end-device_syslog.csv"
-    #copys
-    - name: Copy syslog.csv file to END DEVICE
-      copy:
-        src: "{{ main_folder_path }}/END DEVICE/end-device_syslog.csv"
-        dest: "{{ main_folder_path }}/END DEVICE/end-device_syslog.csv"
