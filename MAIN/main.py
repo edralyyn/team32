@@ -4,7 +4,7 @@ import subprocess
 import tensorflow as tf
 import numpy as np
 import os
-from tensorflow.keras.models import load_model
+import predict
 
 def on_collect_click(information_text):
 
@@ -18,36 +18,18 @@ def on_collect_click(information_text):
         except subprocess.CalledProcessError as e:
             information_text.insert(tk.END, f"Error running scanip.py: {e}\n")
 
-#Fetch Model
-current_directory = os.getcwd()
-model_file = 'PD1-1.h5'
-model_path = os.path.join(current_directory, model_file)
-model = load_model(model_path)
-
 def on_forecast_click():
-
-    #Warning
+    # Warning
     result = messagebox.askyesno("Warning", "This will run forecasting. Do you want to proceed?")
-
     if result:
         try:
-            # Perform forecasting using your loaded model
-            # For example, you can generate some dummy input data for demonstration
-            input_data = np.random.rand(50, 10, 1)  # Adjust input_shape according to your model
-            
-            # Perform prediction using the loaded model
-            predictions = model.predict(input_data)
-            
-            # Process predictions as needed
-            # For demonstration purposes, you can convert predictions to a string
-            output = "\n".join([str(prediction) for prediction in predictions])
-            
-            # Show forecasting information
-            show_forecasting_information(output, None)
+            num_days_input = int(input("Enter the number of days for prediction: "))
+            predicted_event = predict.get_predicted_event(num_days_input)
+            show_forecasting_information(predicted_event, None, num_days_input)  # Pass num_days_input
         except Exception as e:
-            show_forecasting_information(None, f"Error during forecasting: {e}")
+            show_forecasting_information(None, f"Error during forecasting: {e}", None)  # Pass None for num_days_input
 
-def show_forecasting_information(output, error_output):
+def show_forecasting_information(output, error_output, num_days_input):
     # Create a new window for forecasting information
     forecasting_window = tk.Toplevel()
     forecasting_window.title("Forecasting Information")
@@ -61,10 +43,11 @@ def show_forecasting_information(output, error_output):
 
     forecasting_text = tk.Text(forecasting_window, fg='black')  # Set text and background color
     if output is not None:
-        forecasting_text.insert(tk.END, f"\n{output}")
+        forecasting_text.insert(tk.END, f"\nThe predicted Event ID after {num_days_input} days is: {output}")
     elif error_output is not None:
         forecasting_text.insert(tk.END, f"{error_output}")
     forecasting_text.pack(padx=10, pady=10)
+
 
 def customize_gui(background_color, window_size):
     root = tk.Tk()
