@@ -6,11 +6,11 @@ from keras.utils import to_categorical
 from keras.models import load_model
 
 #Preprocessing method
-new_data = pd.read_csv('D://Project design/team32/MAIN/datasets/mysyslog_windows.csv', usecols=[0,1,2,3,4])
-new_data['Date and Time'] = pd.to_datetime(new_data['Date and Time'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
-new_data['Event ID'] = new_data['Event ID'].astype('object')
+new_data = pd.read_csv('/home/jkvcombo/Videos/team32/MAIN/SYSLOG/END DEVICES/192.168.1.36_syslog.csv', usecols=[0,1,2,3,4])
+new_data['timestamp'] = pd.to_datetime(new_data['timestamp'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
+new_data['pid'] = new_data['pid'].astype('object')
 
-new_data['Event_encoded'] = LabelEncoder().fit_transform(new_data['Event ID'])
+new_data['Event_encoded'] = LabelEncoder().fit_transform(new_data['pid'])
 
 sequence_length = 10
 new_X, new_y = [], []
@@ -55,7 +55,7 @@ def predict_event(num_days):
     predicted_label = np.argmax(predicted_probs)
 
     # Assuming 'Event ID' is the column with original event labels in the DataFrame
-    predicted_event_id = new_data['Event ID'].unique()[predicted_label]
+    predicted_event_id = new_data['pid'].unique()[predicted_label]
 
     return predicted_event_id
 
