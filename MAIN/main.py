@@ -13,7 +13,7 @@ def on_collect_click(information_text):
 
     if result:
         try:
-            output = subprocess.check_output(["python3", "scanip.py"], text=True)
+            output = subprocess.check_output(["python3", "combo.py"], text=True)
             information_text.insert(tk.END, f"collect clicked. Collecting data...\n{output}\n")
         except subprocess.CalledProcessError as e:
             information_text.insert(tk.END, f"Error running scanip.py: {e}\n")

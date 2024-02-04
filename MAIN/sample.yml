@@ -1,0 +1,45 @@
+---
+- name: Create main folder and subfolders locally
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    main_folder_path: "./SYSLOG/"
+
+  tasks:
+    - name: Create main folder
+      file:
+        path: "{{ main_folder_path }}"
+        state: directory
+
+    - name: Create END DEVICE folder
+      file:
+        path: "{{ main_folder_path }}/END DEVICE"
+        state: directory
+
+    - name: Create INTERM DEVICE folder
+      file:
+        path: "{{ main_folder_path }}/INTERM DEVICE"
+        state: directory
+
+    - name: Collect syslog from the local machine
+      command: cat "/var/log/syslog"
+      register: syslog_local
+
+    - name: Save syslog from the local machine to END DEVICE subfolder
+      copy:
+        content: "{{ syslog_local.stdout }}"
+        dest: "{{ main_folder_path }}/END DEVICE/syslog.txt"
+
+    - name: Collect syslog from the remote machine
+      command: cat "/var/log/syslog"
+      register: syslog_remote
+
+    - name: Save syslog from the remote machine to END DEVICE subfolder on local machine
+      copy:
+        content: "{{ syslog_remote.stdout }}"
+        dest: "{{ main_folder_path }}/END DEVICE/syslog_remote.txt"
+
+ 
+
+
