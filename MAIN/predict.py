@@ -21,14 +21,11 @@ def preprocess_data(sequence_length=10):
     new_X = np.array(new_X)
     new_y = np.array(new_y)
 
-    # One-hot encode the target variable if needed
     num_classes = len(np.unique(new_data['Event_encoded']))
     new_y_one_hot = to_categorical(new_y, num_classes=num_classes)
 
-    # Reshape data to match the input shape
     new_X = new_X.reshape((new_X.shape[0], sequence_length, 1))
 
-    # Ensure the shape is (None, 10, 1)
     new_X = new_X.reshape((-1, sequence_length, 1))
 
     return new_data, new_X, num_classes

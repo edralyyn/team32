@@ -22,8 +22,6 @@ def syslog_to_csv(input_file, output_file):
             parsed_data = parse_syslog_line(line)
             if parsed_data:
                 writer.writerow(parsed_data)
-
-    # Delete the original .txt file after conversion
     os.remove(input_file)
 
 def process_all_syslogs(directory):
