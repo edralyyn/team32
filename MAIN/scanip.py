@@ -4,6 +4,18 @@ import subprocess
 import configparser
 import os
 
+def get_local_ip():
+    try:
+        # Create a socket connection to an external server to determine the local IP address
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+        return local_ip
+    except Exception as e:
+        print(f"Error getting local IP address: {e}")
+        return None
+
 def scan_devices_in_network(network_prefix, start_range, end_range, timeout=1):
     reachable_devices = []
 
@@ -47,10 +59,17 @@ def run_ansible_playbook(inventory_file, playbook_file):
         print(f"Error running Ansible playbook: {e}")
 
 if __name__ == "__main__":
-    # Define your network details
-    network_prefix = "192.168.1"  # Change this to your network's prefix of the device
+    # Automatically determine the local IP address and use it as the network prefix
+    local_ip = get_local_ip()
+    if local_ip:
+        network_prefix = ".".join(local_ip.split(".")[:-1])  # Extract the first three octets
+    else:
+        print("Exiting due to an error in determining the local IP address.")
+        exit(1)
+
+    # Adjust the range based on your network sizes
     start_range = 35
-    end_range = 55  # Adjust the range based on your network sizes
+    end_range = 55
 
     inventory_file = 'inventory.ini'  # Path to the inventory file
     playbook_file = 'sample.yml'  # Path to the Ansible playbook file

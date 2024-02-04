@@ -35,5 +35,5 @@ def process_all_syslogs(directory):
             syslog_to_csv(input_file, output_file)
 
 if __name__ == "__main__":
-    syslog_directory = './SYSLOG/END DEVICE/'
+    syslog_directory = './SYSLOG/END DEVICES/'
     process_all_syslogs(syslog_directory)
