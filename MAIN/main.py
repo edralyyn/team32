@@ -1,10 +1,10 @@
 import tkinter as tk
 from tkinter import messagebox, Toplevel
 import subprocess
-import tensorflow as tf
 import numpy as np
 import os
 import predict
+import tkinter.simpledialog as simpledialog
 
 def on_collect_click(information_text):
     result = messagebox.askyesno("Warning", "This will collect data. Do you want to proceed?")
@@ -19,23 +19,27 @@ def on_forecast_click():
     result = messagebox.askyesno("Warning", "This will run forecasting. Do you want to proceed?")
     if result:
         try:
-            num_days_input = int(input("Enter the number of days for prediction: "))
-            predicted_event = predict.get_predicted_event(num_days_input)
-            show_forecasting_information(predicted_event, None, num_days_input)
+            num_days_input = simpledialog.askinteger("Input", "Enter the number of days for prediction:")
+            for file_name, df in predict.dataframes:
+                predicted_pid = predict.predict_pid(df, num_days_input)
+                predict.predictions[file_name] = predicted_pid
+
+            show_forecasting_information(predict.predictions, None, num_days_input)
         except Exception as e:
             show_forecasting_information(None, f"Error during forecasting: {e}", None)
 
-def show_forecasting_information(output, error_output, num_days_input):
+def show_forecasting_information(predictions, error_output, num_days_input):
     forecasting_window = tk.Toplevel()
     forecasting_window.title("Forecasting Information")
     forecasting_window.configure(bg='#238BD6')
     forecasting_label = tk.Label(forecasting_window, text="Forecasting information:", bg='#238BD6', fg='black')
     forecasting_label.pack(pady=10)
     forecasting_text = tk.Text(forecasting_window, fg='black')
-    if output is not None:
-        forecasting_text.insert(tk.END, f"\nThe predicted Event ID after {num_days_input} days is: {output}")
-    elif error_output is not None:
-        forecasting_text.insert(tk.END, f"{error_output}")
+
+    output = "\n".join([f"The predicted pid after {num_days_input} days for {file_name} is: {predicted_pid}" 
+                        for file_name, predicted_pid in predictions.items()])
+    
+    forecasting_text.insert(tk.END, output)
     forecasting_text.pack(padx=10, pady=10)
 
 def customize_gui(background_color, window_size):

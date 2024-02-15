@@ -3,30 +3,38 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from keras.utils import to_categorical
-from keras.models import load_model
+from tensorflow.keras.models import load_model
 
-def preprocess_data(sequence_length=10):
-    new_data = pd.read_csv('/home/vboxuser/Desktop/git/team32/MAIN/SYSLOG/END DEVICES/192.168.1.50_syslog.csv', usecols=[0,1,2,3,4])
-    new_data['timestamp'] = pd.to_datetime(new_data['timestamp'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
-    new_data['pid'] = new_data['pid'].astype('object')
+directories = ["SYSLOG/END DEVICES", "SYSLOG/INTERMEDIARY DEVICES"]
+dataframes = []
 
-    new_data['Event_encoded'] = LabelEncoder().fit_transform(new_data['pid'])
+for directory in directories:
+    for filename in os.listdir(directory):
+        if filename.endswith('.csv'):
+            file_path = os.path.join(directory, filename)
+            file_name = os.path.splitext(filename)[0]
+            variable_name = f"{file_name.replace('.', '_')}"
+            df = pd.read_csv(file_path, usecols=[0, 1, 2, 3, 4]).rename(columns=lambda x: x.strip())
+            dataframes.append((file_name, df))
+    
+    new_data = pd.concat([df for _, df in dataframes])  # Concatenate all dataframes into one
 
-    new_X, new_y = [], []
+def preprocess_data(sequence_length=10):  
+    if 'Date and Time' in new_data.columns:
+        new_data['Date and Time'] = pd.to_datetime(new_data['Date and Time'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
 
-    for i in range(len(new_data) - sequence_length):
-        new_X.append(new_data['Event_encoded'].values[i:i+sequence_length])
-        new_y.append(new_data['Event_encoded'].values[i+sequence_length])
-
-    new_X = np.array(new_X)
-    new_y = np.array(new_y)
-
-    num_classes = len(np.unique(new_data['Event_encoded']))
-    new_y_one_hot = to_categorical(new_y, num_classes=num_classes)
-
-    new_X = new_X.reshape((new_X.shape[0], sequence_length, 1))
-
-    new_X = new_X.reshape((-1, sequence_length, 1))
+    if 'pid' in new_data.columns:
+        new_data['pid_encoded'] = LabelEncoder().fit_transform(new_data['pid'])
+        new_X, new_y = [], []
+        for i in range(len(new_data) - sequence_length):
+            new_X.append(new_data['pid_encoded'].values[i:i+sequence_length])
+            new_y.append(new_data['pid_encoded'].values[i+sequence_length])
+        new_X = np.array(new_X)
+        new_y = np.array(new_y)
+        num_classes = len(np.unique(new_data['pid_encoded']))
+        new_y_one_hot = to_categorical(new_y, num_classes=num_classes)
+        new_X = new_X.reshape((new_X.shape[0], sequence_length, 1))
+        new_X = new_X.reshape((-1, sequence_length, 1))
 
     return new_data, new_X, num_classes
 
@@ -57,3 +65,27 @@ def get_predicted_event(num_days_input):
     predicted_event = predict_event(model, new_data, sequence_length, num_days_input)
     
     return predicted_event
+
+saved_model_path = "PD1-1.h5"
+loaded_model = load_model(saved_model_path)
+
+def predict_pid(dataframe, num_days):
+    sequence_length = 10
+    if 'pid_encoded' not in dataframe.columns:
+        dataframe['pid_encoded'] = LabelEncoder().fit_transform(dataframe['pid'])
+
+    new_sequence = dataframe['pid_encoded'].values[-sequence_length:]
+
+    for i in range(num_days):
+        new_sequence = np.append(new_sequence, 0)
+
+    new_sequence = new_sequence[-sequence_length:]
+    new_sequence = new_sequence.reshape(1, sequence_length, 1)
+
+    predicted_probs = loaded_model.predict(new_sequence)
+    predicted_label = np.argmax(predicted_probs)
+    predicted_pid = dataframe['pid'].unique()[predicted_label]
+
+    return predicted_pid
+
+predictions = {}
