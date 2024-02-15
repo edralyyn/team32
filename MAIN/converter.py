@@ -1,7 +1,7 @@
 import os
 import re
 import csv
-
+#add
 def parse_syslog_line(line):
     """Parse a single line of syslog data."""
     pattern = r'(?P<timestamp>\w{3}\s+\d{1,2}\s\d{2}:\d{2}:\d{2})\s(?P<hostname>\S+)\s(?P<process>\S+)\[(?P<pid>\d+)\]:\s(?P<message>.*)'

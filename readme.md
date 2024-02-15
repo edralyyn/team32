@@ -1,5 +1,5 @@
 This script run on host(my pc) and virtual machine(ubuntu 20.04)
-
+#add
 Need:
 VS Code
 Ubuntu OS.ISO

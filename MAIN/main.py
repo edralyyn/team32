@@ -5,7 +5,7 @@ import tensorflow as tf
 import numpy as np
 import os
 import predict
-
+#add
 def on_collect_click(information_text):
     result = messagebox.askyesno("Warning", "This will collect data. Do you want to proceed?")
     if result:

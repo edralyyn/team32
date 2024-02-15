@@ -1,7 +1,7 @@
 ---
 - name: Collect and Save syslog
   hosts: localhost  # Run tasks only on the local machine
-  gather_facts: true
+  gather_facts: true #add
 
   vars:
     main_folder_path: "./SYSLOG/"

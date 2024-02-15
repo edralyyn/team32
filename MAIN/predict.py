@@ -6,7 +6,7 @@ from keras.utils import to_categorical
 from keras.models import load_model
 
 def preprocess_data(sequence_length=10):
-    new_data = pd.read_csv('/home/vboxuser/Desktop/git/team32/MAIN/SYSLOG/END DEVICES/192.168.1.50_syslog.csv', usecols=[0,1,2,3,4])
+    new_data = pd.read_csv('/home/combo/Videos/team32/MAIN/SYSLOG/END DEVICES/192.168.1.39_syslog.csv', usecols=[0,1,2,3,4])
     new_data['timestamp'] = pd.to_datetime(new_data['timestamp'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
     new_data['pid'] = new_data['pid'].astype('object')
 
