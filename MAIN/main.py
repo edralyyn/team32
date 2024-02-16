@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox, Toplevel
 import subprocess
 import numpy as np
+import pandas as pd
 import os
 import predict
 import tkinter.simpledialog as simpledialog
@@ -71,16 +72,34 @@ def on_forecast_click():
                     messagebox.showinfo("No Devices Found", "There are no devices found. Unable to perform forecasting.")
                     return
 
-                predictions = {}
-                for file_name, df in predict.dataframes:
-                    predicted_pid = predict.predict_pid(df, num_days_input)
-                    predictions[file_name] = predicted_pid
+                for directory in predict.directories:
+                    for filename in os.listdir(directory):
+                        if filename.endswith('.csv'):
+                            file_path = os.path.join(directory, filename)
+                            file_name = os.path.splitext(filename)[0]
+                            directory_name = os.path.basename(directory)
+                            df = pd.read_csv(file_path, usecols=[0, 1, 2, 3, 4]).rename(columns=lambda x: x.strip())
+                            predict.predictions[file_name] = (directory_name, df)
 
-                show_forecasting_information(predictions, None, num_days_input)
+                end_devices_predictions = {k: v for k, v in predict.predictions.items() if "END DEVICES" in v[0]}
+                intermediary_devices_predictions = {k: v for k, v in predict.predictions.items() if "INTERMEDIARY DEVICES" in v[0]}
+
+                predictions_to_show = {}
+                for file_name, (directory_name, df) in end_devices_predictions.items():
+                    predicted_pid = predict.predict_pid(df, num_days_input)
+                    predictions_to_show[file_name] = predicted_pid
+
+                predictions_to_show_intermediary = {}
+                for file_name, (directory_name, df) in intermediary_devices_predictions.items():
+                    predicted_pid = predict.predict_pid(df, num_days_input)
+                    predictions_to_show_intermediary[file_name] = predicted_pid
+
+                show_forecasting_information(predictions_to_show, predictions_to_show_intermediary, None, num_days_input)
+
             except Exception as e:
                 show_forecasting_information(None, f"Error during forecasting: {e}", None)
 
-def show_forecasting_information(predictions, error_output, num_days_input):
+def show_forecasting_information(predictions, predictions_intermediary, error_output, num_days_input):
     forecasting_window = tk.Toplevel()
     set_icon(forecasting_window)
     forecasting_window.title("Forecasting Information")
@@ -89,10 +108,22 @@ def show_forecasting_information(predictions, error_output, num_days_input):
     forecasting_label.pack(pady=10)
     forecasting_text = tk.Text(forecasting_window, fg='black')
 
-    output = "\n".join([f"The predicted pid after {num_days_input} days for {file_name} is: {predicted_pid}" 
-                        for file_name, predicted_pid in predictions.items()])
-    
-    forecasting_text.insert(tk.END, output)
+    if predictions or predictions_intermediary:
+        if predictions:
+            output = "\n".join([f"The predicted pid after {num_days_input} days for {file_name} is: {predicted_pid}" 
+                                for file_name, predicted_pid in predictions.items()])
+            forecasting_text.insert(tk.END, "Predictions for END DEVICES:\n" + output + "\n\n")
+
+        if predictions_intermediary:
+            output = "\n".join([f"The predicted pid after {num_days_input} days for {file_name} is: {predicted_pid}" 
+                                for file_name, predicted_pid in predictions_intermediary.items()])
+            forecasting_text.insert(tk.END, "Predictions for INTERMEDIARY DEVICES:\n" + output + "\n\n")
+    else:
+        forecasting_text.insert(tk.END, "No forecasting information available.")
+
+    if error_output:
+        forecasting_text.insert(tk.END, error_output)
+
     forecasting_text.pack(padx=10, pady=10)
 
 def customize_gui(background_color, window_size):
