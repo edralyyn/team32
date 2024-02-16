@@ -5,19 +5,25 @@ from sklearn.preprocessing import LabelEncoder
 from keras.utils import to_categorical
 from tensorflow.keras.models import load_model
 
+new_data = pd.DataFrame()
+
 directories = ["SYSLOG/END DEVICES", "SYSLOG/INTERMEDIARY DEVICES"]
 dataframes = []
 
 for directory in directories:
-    for filename in os.listdir(directory):
-        if filename.endswith('.csv'):
-            file_path = os.path.join(directory, filename)
-            file_name = os.path.splitext(filename)[0]
-            variable_name = f"{file_name.replace('.', '_')}"
-            df = pd.read_csv(file_path, usecols=[0, 1, 2, 3, 4]).rename(columns=lambda x: x.strip())
-            dataframes.append((file_name, df))
-    
-    new_data = pd.concat([df for _, df in dataframes])  # Concatenate all dataframes into one
+    try:
+        for filename in os.listdir(directory):
+            if filename.endswith('.csv'):
+                file_path = os.path.join(directory, filename)
+                file_name = os.path.splitext(filename)[0]
+                variable_name = f"{file_name.replace('.', '_')}"
+                df = pd.read_csv(file_path, usecols=[0, 1, 2, 3, 4]).rename(columns=lambda x: x.strip())
+                dataframes.append((file_name, df))
+
+        new_data = pd.concat([df for _, df in dataframes])
+
+    except FileNotFoundError:
+        print(f"Directory '{directory}' not found. Skipping...")
 
 def preprocess_data(sequence_length=10):  
     if 'Date and Time' in new_data.columns:
@@ -54,10 +60,12 @@ def predict_event(model, new_data, sequence_length, num_days):
 
     return predicted_event_id
 
+saved_model_path = "PD1-1.h5"
+loaded_model = load_model(saved_model_path)
+
 def get_predicted_event(num_days_input):
     sequence_length = 10
-    model_file = 'PD1-1.h5'
-    model_path = os.path.join(os.getcwd(), model_file)
+    model_path = os.path.join(os.getcwd(), saved_model_path)
     model = load_model(model_path)
     
     new_data, new_X, num_classes = preprocess_data(sequence_length)
@@ -65,9 +73,6 @@ def get_predicted_event(num_days_input):
     predicted_event = predict_event(model, new_data, sequence_length, num_days_input)
     
     return predicted_event
-
-saved_model_path = "PD1-1.h5"
-loaded_model = load_model(saved_model_path)
 
 def predict_pid(dataframe, num_days):
     sequence_length = 10

@@ -12,25 +12,45 @@ def set_icon(window):
     window.iconbitmap(icon_path)
 
 def custom_askinteger(title, prompt):
-    while True:
-        dialog_window = tk.Toplevel()
-        set_icon(dialog_window)
-        dialog_window.title(title)
-        label = tk.Label(dialog_window, text=prompt)
-        label.pack(padx=10, pady=5)
-        entry_var = tk.StringVar()
-        entry = tk.Entry(dialog_window, textvariable=entry_var)
-        entry.pack(padx=10, pady=5)
-        ok_button = tk.Button(dialog_window, text="Predict", command=lambda: dialog_window.destroy())
-        ok_button.pack(pady=5)
-        dialog_window.wait_window()
-        result = None
-        try:
-            result = int(entry_var.get())
-            break  # Break the loop if a valid integer is entered
-        except ValueError:
-            messagebox.showerror("Invalid Input", "Please enter a valid integer.")
-    return result
+    result = [None]
+
+    def on_ok(event=None):
+        if entry_var.get():
+            try:
+                result[0] = int(entry_var.get())
+                dialog_window.destroy()
+            except ValueError:
+                messagebox.showerror("Invalid Input", "Please enter a valid integer.")
+                dialog_window.lift()
+
+    def on_cancel():
+        result[0] = None
+        dialog_window.destroy()
+
+    dialog_window = tk.Toplevel()
+    set_icon(dialog_window)
+    dialog_window.title(title)
+    label = tk.Label(dialog_window, text=prompt)
+    label.pack(padx=10, pady=5)
+    entry_var = tk.StringVar()
+    entry = tk.Entry(dialog_window, textvariable=entry_var)
+    entry.pack(padx=10, pady=5)
+    entry.bind("<Return>", on_ok)
+    
+    entry.focus_set()
+
+    button_frame = tk.Frame(dialog_window)
+    button_frame.pack(pady=5)
+    ok_button = tk.Button(button_frame, text="Predict", command=on_ok)
+    ok_button.pack(side=tk.LEFT, padx=5)
+    cancel_button = tk.Button(button_frame, text="Cancel", command=on_cancel)
+    cancel_button.pack(side=tk.LEFT, padx=5)
+
+    dialog_window.wait_window()
+
+    if result[0] is not None:
+        return result[0]
+
 
 def on_collect_click(information_text):
     result = messagebox.askyesno("Warning", "This will collect data. Do you want to proceed?")
@@ -44,15 +64,21 @@ def on_collect_click(information_text):
 def on_forecast_click():
     result = messagebox.askyesno("Warning", "This will run forecasting. Do you want to proceed?")
     if result:
-        try:
-            num_days_input = custom_askinteger("Desired Days", "Enter the number of days for prediction:")
-            for file_name, df in predict.dataframes:
-                predicted_pid = predict.predict_pid(df, num_days_input)
-                predict.predictions[file_name] = predicted_pid
+        num_days_input = custom_askinteger("Desired Days", "Enter the number of days for prediction:")
+        if num_days_input is not None:
+            try:
+                if not predict.dataframes:
+                    messagebox.showinfo("No Devices Found", "There are no devices found. Unable to perform forecasting.")
+                    return
 
-            show_forecasting_information(predict.predictions, None, num_days_input)
-        except Exception as e:
-            show_forecasting_information(None, f"Error during forecasting: {e}", None)
+                predictions = {}
+                for file_name, df in predict.dataframes:
+                    predicted_pid = predict.predict_pid(df, num_days_input)
+                    predictions[file_name] = predicted_pid
+
+                show_forecasting_information(predictions, None, num_days_input)
+            except Exception as e:
+                show_forecasting_information(None, f"Error during forecasting: {e}", None)
 
 def show_forecasting_information(predictions, error_output, num_days_input):
     forecasting_window = tk.Toplevel()
