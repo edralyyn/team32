@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from keras.utils import to_categorical
-from tensorflow.keras.models import load_model
+from keras.models import load_model
 
 new_data = pd.DataFrame()
 
@@ -25,7 +25,7 @@ for directory in directories:
     except FileNotFoundError:
         print(f"Directory '{directory}' not found. Skipping...")
 
-def preprocess_data(sequence_length=10):  
+def preprocess_data(sequence_length=20):  
     if 'Date and Time' in new_data.columns:
         new_data['Date and Time'] = pd.to_datetime(new_data['Date and Time'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
 
@@ -60,11 +60,11 @@ def predict_event(model, new_data, sequence_length, num_days):
 
     return predicted_event_id
 
-saved_model_path = "PD1-1.h5"
+saved_model_path = "PD1-1(v2).h5"
 loaded_model = load_model(saved_model_path)
 
 def get_predicted_event(num_days_input):
-    sequence_length = 10
+    sequence_length = 20
     model_path = os.path.join(os.getcwd(), saved_model_path)
     model = load_model(model_path)
     
@@ -75,7 +75,7 @@ def get_predicted_event(num_days_input):
     return predicted_event
 
 def predict_pid(dataframe, num_days):
-    sequence_length = 10
+    sequence_length = 20
     if 'pid_encoded' not in dataframe.columns:
         dataframe['pid_encoded'] = LabelEncoder().fit_transform(dataframe['pid'])
 

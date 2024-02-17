@@ -82,32 +82,41 @@ def on_forecast_click():
                     messagebox.showinfo("No Devices Found", "There are no devices found. Unable to perform forecasting.")
                     return
 
-                for directory in predict.directories:
-                    for filename in os.listdir(directory):
-                        if filename.endswith('.csv'):
-                            file_path = os.path.join(directory, filename)
-                            file_name = os.path.splitext(filename)[0]
-                            directory_name = os.path.basename(directory)
-                            df = pd.read_csv(file_path, usecols=[0, 1, 2, 3, 4]).rename(columns=lambda x: x.strip())
-                            predict.predictions[file_name] = (directory_name, df)
-
-                end_devices_predictions = {k: v for k, v in predict.predictions.items() if "END DEVICES" in v[0]}
-                intermediary_devices_predictions = {k: v for k, v in predict.predictions.items() if "INTERMEDIARY DEVICES" in v[0]}
-
                 predictions_to_show = {}
-                for file_name, (directory_name, df) in end_devices_predictions.items():
-                    predicted_pid = predict.predict_pid(df, num_days_input)
-                    predictions_to_show[file_name] = predicted_pid
-
                 predictions_to_show_intermediary = {}
-                for file_name, (directory_name, df) in intermediary_devices_predictions.items():
-                    predicted_pid = predict.predict_pid(df, num_days_input)
-                    predictions_to_show_intermediary[file_name] = predicted_pid
+
+                for directory in predict.directories:
+                    try:
+                        for filename in os.listdir(directory):
+                            if filename.endswith('.csv'):
+                                file_path = os.path.join(directory, filename)
+                                file_name = os.path.splitext(filename)[0]
+                                directory_name = os.path.basename(directory)
+                                df = pd.read_csv(file_path, usecols=[0, 1, 2, 3, 4]).rename(columns=lambda x: x.strip())
+                                predict.predictions[file_name] = (directory_name, df)
+
+                        end_devices_predictions = {k: v for k, v in predict.predictions.items() if "END DEVICES" in v[0]}
+                        intermediary_devices_predictions = {k: v for k, v in predict.predictions.items() if "INTERMEDIARY DEVICES" in v[0]}
+
+                        for file_name, (directory_name, df) in end_devices_predictions.items():
+                            predicted_pid = predict.predict_pid(df, num_days_input)
+                            predictions_to_show[file_name] = predicted_pid
+
+                        for file_name, (directory_name, df) in intermediary_devices_predictions.items():
+                            predicted_pid = predict.predict_pid(df, num_days_input)
+                            predictions_to_show_intermediary[file_name] = predicted_pid
+
+                    except FileNotFoundError as e:
+                        # Handle the case where a directory is missing
+                        predictions_to_show_intermediary = None
+                        error_output = f"Error during forecasting: {e}"
+                        show_forecasting_information(predictions_to_show, predictions_to_show_intermediary, error_output, num_days_input)
+                        return
 
                 show_forecasting_information(predictions_to_show, predictions_to_show_intermediary, None, num_days_input)
 
             except Exception as e:
-                show_forecasting_information(None, f"Error during forecasting: {e}", None)
+                show_forecasting_information(None, None, f"Error during forecasting: {e}", None)
 
 def show_forecasting_information(predictions, predictions_intermediary, error_output, num_days_input):
     forecasting_window = tk.Toplevel()
@@ -129,10 +138,12 @@ def show_forecasting_information(predictions, predictions_intermediary, error_ou
                                 for file_name, predicted_pid in predictions_intermediary.items()])
             forecasting_text.insert(tk.END, "Predictions for INTERMEDIARY DEVICES:\n" + output + "\n\n")
     else:
-        forecasting_text.insert(tk.END, "No forecasting information available.")
-
-    if error_output:
-        forecasting_text.insert(tk.END, error_output)
+        # Check if there was an error accessing the directories
+        if error_output:
+            forecasting_text.insert(tk.END, error_output)
+        else:
+            # If no error, assume one directory is missing and inform the user
+            forecasting_text.insert(tk.END, "No forecasting information available for one or more directories.")
 
     forecasting_text.pack(padx=10, pady=10)
 
