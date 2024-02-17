@@ -7,6 +7,7 @@ import os
 import predict
 import tkinter.simpledialog as simpledialog
 import platform
+import scanip
 
 def set_icon(window):
     icon_filename = "icon.ico"
@@ -62,16 +63,25 @@ def custom_askinteger(title, prompt):
     if result[0] is not None:
         return result[0]
 
-
 def on_collect_click(information_text):
     result = messagebox.askyesno("Warning", "This will collect data. Do you want to proceed?")
     if result:
         try:
-            output = subprocess.check_output(["python3", "combo.py"], text=True)
-            information_text.insert(tk.END, f"collect clicked. Collecting data...\n{output}\n")
-        except subprocess.CalledProcessError as e:
-            information_text.insert(tk.END, f"Error running scanip.py: {e}\n")
-
+            output = subprocess.run(["python3", "scanip.py"], capture_output=True, text=True)
+            if output.returncode == 0:
+                # Process the output to extract the topology table
+                topology_table_lines = output.stdout.splitlines()
+                start_index = topology_table_lines.index("Topology Table:") + 1
+                topology_table_text = "\n".join(topology_table_lines[start_index:])
+                
+                # Print the topology table to the information_text widget
+                information_text.insert(tk.END, "Topology Table:\n")
+                information_text.insert(tk.END, topology_table_text + "\n")
+            else:
+                information_text.insert(tk.END, f"Error running scanip.py: {output.stderr}\n")
+        except FileNotFoundError:
+            information_text.insert(tk.END, "Error: scanip.py not found.\n")
+            
 def on_forecast_click():
     result = messagebox.askyesno("Warning", "This will run forecasting. Do you want to proceed?")
     if result:

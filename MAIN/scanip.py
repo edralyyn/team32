@@ -3,6 +3,8 @@ import socket
 import subprocess
 import configparser
 
+converter = "converter.py"
+
 def get_local_ip():
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -76,14 +78,11 @@ def create_topology_table(inventory_file, reachable_devices):
 
 
 def print_topology_table(topology_table):
-    if topology_table:
-        print("Topology Table:")
-        print("{:<10} {:<15} {:<15} {:<15}".format("Host", "IP Address", "Status", "Conditions"))
-        print("-" * 60)
-        for host_name, host_ip, status, conditions in topology_table:
-            print("{:<10} {:<15} {:<15} {:<15}".format(host_name, host_ip, status, conditions))
-    else:
-        print("Topology table not available.")
+    print("Topology Table:")
+    print("{:<10} {:<15} {:<15} {:<15}".format("Host", "IP Address", "Status", "Conditions"))
+    print("-" * 60)
+    for host_name, host_ip, status, conditions in topology_table:
+        print("{:<10} {:<15} {:<15} {:<15}".format(host_name, host_ip, status, conditions))
 
 def run_ansible_playbook(inventory_file, playbook_file):
     try:
@@ -100,8 +99,8 @@ if __name__ == "__main__":
         print("Exiting due to an error in determining the local IP address.")
         exit(1)
 
-    start_range = 30
-    end_range = 55
+    start_range = 230
+    end_range = 235
 
     inventory_file = 'inventory.ini'
     playbook_file = 'sample.yml'
@@ -112,9 +111,8 @@ if __name__ == "__main__":
     # Run Ansible playbook
     run_ansible_playbook(inventory_file, playbook_file)
 
-    # Clear the screen
-    os.system('cls' if os.name == 'nt' else 'clear')
+    subprocess.run(["python3", converter])
 
-    # Create and print the topology table
+    # Create the topology table
     topology_table = create_topology_table(inventory_file, reachable_devices)
     print_topology_table(topology_table)
