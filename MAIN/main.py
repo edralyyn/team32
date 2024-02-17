@@ -6,11 +6,21 @@ import pandas as pd
 import os
 import predict
 import tkinter.simpledialog as simpledialog
+import platform
 
 def set_icon(window):
     icon_filename = "icon.ico"
     icon_path = os.path.join(os.getcwd(), icon_filename)
-    window.iconbitmap(icon_path)
+    if platform.system() == "Windows":
+        # Use ICO file directly on Windows
+        window.iconbitmap(icon_path)
+    elif platform.system() == "Linux":
+        # Convert ICO to BMP and use BMP file on Linux
+        try:
+            subprocess.run(["convert", icon_path, icon_path.replace(".ico", ".bmp")])
+            window.iconbitmap(icon_path.replace(".ico", ".bmp"))
+        except Exception as e:
+            print(f"Error converting icon file: {e}")
 
 def custom_askinteger(title, prompt):
     result = [None]

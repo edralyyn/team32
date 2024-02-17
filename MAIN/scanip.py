@@ -1,7 +1,7 @@
+import os
 import socket
 import subprocess
 import configparser
-import os
 
 def get_local_ip():
     try:
@@ -45,6 +45,45 @@ def save_to_inventory(reachable_devices, inventory_file):
     except Exception as e:
         print(f"Error saving inventory: {e}")
 
+def create_topology_table(inventory_file, reachable_devices):
+    try:
+        config = configparser.ConfigParser()
+        config.read(inventory_file)
+
+        topology_table = []
+
+        for host in config['hosts']:
+            host_details = config['hosts'][host].split('=')
+            host_name = host_details[0].strip()
+            host_ip = host_details[1].strip()
+
+            # Check if the host is in the list of reachable devices
+            status = "Reachable" if host_ip in reachable_devices else "Not Reachable"
+
+            # Extract the host number from the section key (e.g., 'host1' -> '1')
+            host_number = ''.join(filter(str.isdigit, host))
+
+            # Add a placeholder for "Conditions"
+            conditions = "N/A"  # You may replace this with actual conditions if needed
+
+            topology_table.append((f"host{host_number}", host_ip, status, conditions))
+
+        return topology_table
+
+    except Exception as e:
+        print(f"Error creating topology table: {e}")
+        return None
+
+
+def print_topology_table(topology_table):
+    if topology_table:
+        print("Topology Table:")
+        print("{:<10} {:<15} {:<15} {:<15}".format("Host", "IP Address", "Status", "Conditions"))
+        print("-" * 60)
+        for host_name, host_ip, status, conditions in topology_table:
+            print("{:<10} {:<15} {:<15} {:<15}".format(host_name, host_ip, status, conditions))
+    else:
+        print("Topology table not available.")
 
 def run_ansible_playbook(inventory_file, playbook_file):
     try:
@@ -61,7 +100,7 @@ if __name__ == "__main__":
         print("Exiting due to an error in determining the local IP address.")
         exit(1)
 
-    start_range = 35
+    start_range = 30
     end_range = 55
 
     inventory_file = 'inventory.ini'
@@ -70,4 +109,12 @@ if __name__ == "__main__":
     reachable_devices = scan_devices_in_network(network_prefix, start_range, end_range)
     save_to_inventory(reachable_devices, inventory_file)
 
+    # Run Ansible playbook
     run_ansible_playbook(inventory_file, playbook_file)
+
+    # Clear the screen
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+    # Create and print the topology table
+    topology_table = create_topology_table(inventory_file, reachable_devices)
+    print_topology_table(topology_table)
