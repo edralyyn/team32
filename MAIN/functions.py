@@ -1,88 +1,77 @@
-import tkinter as tk
-from tkinter import messagebox, Toplevel
 import subprocess
-import numpy as np
-import pandas as pd
+from PyQt5.QtWidgets import QMessageBox, QLineEdit, QPushButton, QVBoxLayout, QLabel, QTextEdit, QDialog
 import os
 import predict
+import pandas as pd
 
-class CustomDialog:
+class CustomDialog(QDialog):
     @staticmethod
     def ask_integer(title, prompt):
         result = [None]
 
-        def on_ok(event=None):
-            if entry_var.get():
+        def on_ok():
+            if entry.text():
                 try:
-                    result[0] = int(entry_var.get())
-                    dialog_window.destroy()
+                    result[0] = int(entry.text())
+                    dialog_window.accept()
                 except ValueError:
-                    messagebox.showerror("Invalid Input", "Please enter a valid integer.")
-                    dialog_window.lift()
+                    QMessageBox.critical(None, "Invalid Input", "Please enter a valid integer.")
+                    dialog_window.show()
 
         def on_cancel():
             result[0] = None
-            dialog_window.destroy()
+            dialog_window.reject()
 
-        dialog_window = tk.Toplevel()
-        dialog_window.title(title)
-        label = tk.Label(dialog_window, text=prompt)
-        label.pack(padx=10, pady=5)
-        entry_var = tk.StringVar()
-        entry = tk.Entry(dialog_window, textvariable=entry_var)
-        entry.pack(padx=10, pady=5)
-        entry.bind("<Return>", on_ok)
+        dialog_window = QDialog()
+        dialog_window.setWindowTitle(title)
+        label = QLabel(prompt)
+        entry = QLineEdit()
+        entry.returnPressed.connect(on_ok)
 
-        entry.focus_set()
+        button_frame = QVBoxLayout()
+        button_frame.addWidget(label)
+        button_frame.addWidget(entry)
 
-        button_frame = tk.Frame(dialog_window)
-        button_frame.pack(pady=5)
-        ok_button = tk.Button(button_frame, text="Predict", command=on_ok)
-        ok_button.pack(side=tk.LEFT, padx=5)
-        cancel_button = tk.Button(button_frame, text="Cancel", command=on_cancel)
-        cancel_button.pack(side=tk.LEFT, padx=5)
+        ok_button = QPushButton("Predict")
+        ok_button.clicked.connect(on_ok)
+        cancel_button = QPushButton("Cancel")
+        cancel_button.clicked.connect(on_cancel)
 
-        dialog_window.wait_window()
+        button_frame.addWidget(ok_button)
+        button_frame.addWidget(cancel_button)
 
-        if result[0] is not None:
+        dialog_window.setLayout(button_frame)
+
+        if dialog_window.exec_():
             return result[0]
 
+from PyQt5.QtWidgets import QMessageBox
+
 def collect_data(canvas):
-    result = messagebox.askyesno("Warning", "This will collect data. Do you want to proceed?")
-    if result:
+    result = QMessageBox.question(None, "Warning", "This will collect data. Do you want to proceed?", QMessageBox.Yes | QMessageBox.No)
+    if result == QMessageBox.Yes:
         try:
             output = subprocess.run(["python3", "scanip.py"], capture_output=True, text=True)
             if output.returncode == 0:
-                # Process the output to extract the topology table
                 topology_table_lines = output.stdout.splitlines()
                 start_index = topology_table_lines.index("Topology Table:") + 1
                 topology_table_text = "\n".join(topology_table_lines[start_index:])
-
-                # Clear any previous content on the canvas
-                canvas.delete("all")
-
-                # Insert the topology table text into the canvas
-                canvas.create_text(10, 10, anchor="nw", text="Topology Table:", fill="black")
-                canvas.create_text(10, 30, anchor="nw", text=topology_table_text, fill="black")
+                canvas.setText("Topology Table:\n" + topology_table_text)
             else:
-                # Clear any previous content on the canvas
-                canvas.delete("all")
-                # Insert error message into the canvas
-                canvas.create_text(10, 10, anchor="nw", text=f"Error running scanip.py: {output.stderr}", fill="red")
+                canvas.clear()
+                canvas.setText(f"Error running scanip.py: {output.stderr}")
         except FileNotFoundError:
-            # Clear any previous content on the canvas
-            canvas.delete("all")
-            # Insert error message into the canvas
-            canvas.create_text(10, 10, anchor="nw", text="Error: scanip.py not found.", fill="red")
+            canvas.clear()
+            canvas.setText("Error: scanip.py not found.")
 
 def forecast():
-    result = messagebox.askyesno("Warning", "This will run forecasting. Do you want to proceed?")
-    if result:
+    result = QMessageBox.question(None, "Warning", "This will run forecasting. Do you want to proceed?", QMessageBox.Yes | QMessageBox.No)
+    if result == QMessageBox.Yes:
         num_days_input = CustomDialog.ask_integer("Desired Days", "Enter the number of days for prediction:")
         if num_days_input is not None:
             try:
                 if not predict.dataframes:
-                    messagebox.showinfo("No Devices Found", "There are no devices found. Unable to perform forecasting.")
+                    QMessageBox.information(None, "No Devices Found", "There are no devices found. Unable to perform forecasting.")
                     return
 
                 predictions_to_show = {}
@@ -110,7 +99,6 @@ def forecast():
                             predictions_to_show_intermediary[file_name] = predicted_pid
 
                     except FileNotFoundError as e:
-                        # Handle the case where a directory is missing
                         predictions_to_show_intermediary = None
                         error_output = f"Error during forecasting: {e}"
                         show_forecasting_information(predictions_to_show, predictions_to_show_intermediary, error_output, num_days_input)
@@ -122,27 +110,29 @@ def forecast():
                 show_forecasting_information(None, None, f"Error during forecasting: {e}", None)
 
 def show_forecasting_information(predictions, predictions_intermediary, error_output, num_days_input):
-    forecasting_window = tk.Toplevel()
-    forecasting_window.title("Forecasting Information")
-    forecasting_window.configure(bg='#88a5cd')
-    forecasting_text = tk.Text(forecasting_window, fg='black')
+    forecasting_window = QDialog()
+    forecasting_window.setWindowTitle("Forecasting Information")
+    forecasting_window.setStyleSheet("background-color: #88a5cd;")
+
+    forecasting_text = QTextEdit()
 
     if predictions or predictions_intermediary:
         if predictions:
             output = "\n".join([f"The predicted pid after {num_days_input} days for {file_name} is: {predicted_pid}"
                                 for file_name, predicted_pid in predictions.items()])
-            forecasting_text.insert(tk.END, "Predictions for END DEVICES:\n" + output + "\n\n")
+            forecasting_text.insertPlainText("Predictions for END DEVICES:\n" + output + "\n\n")
 
         if predictions_intermediary:
             output = "\n".join([f"The predicted pid after {num_days_input} days for {file_name} is: {predicted_pid}"
                                 for file_name, predicted_pid in predictions_intermediary.items()])
-            forecasting_text.insert(tk.END, "Predictions for INTERMEDIARY DEVICES:\n" + output + "\n\n")
+            forecasting_text.insertPlainText("Predictions for INTERMEDIARY DEVICES:\n" + output + "\n\n")
     else:
-        # Check if there was an error accessing the directories
         if error_output:
-            forecasting_text.insert(tk.END, error_output)
+            forecasting_text.insertPlainText(error_output)
         else:
-            # If no error, assume one directory is missing and inform the user
-            forecasting_text.insert(tk.END, "No forecasting information available for one or more directories.")
+            forecasting_text.insertPlainText("No forecasting information available for one or more directories.")
 
-    forecasting_text.pack(padx=10, pady=10)
+    layout = QVBoxLayout()
+    layout.addWidget(forecasting_text)
+    forecasting_window.setLayout(layout)
+    forecasting_window.exec_()
