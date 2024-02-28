@@ -135,4 +135,5 @@ def show_forecasting_information(predictions, predictions_intermediary, error_ou
     layout = QVBoxLayout()
     layout.addWidget(forecasting_text)
     forecasting_window.setLayout(layout)
+    forecasting_window.resize(600, 400)
     forecasting_window.exec_()
