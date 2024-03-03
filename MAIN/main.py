@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QHBoxLayout, QWidget, QTextEdit
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QHBoxLayout, QWidget, QLabel
 from PyQt5.QtCore import Qt
 from functions import collect_data, forecast
 
@@ -39,14 +39,16 @@ class GUI(QMainWindow):
         self.frame1 = QWidget(self)
         self.frame1.setStyleSheet("background-color: " + self.background_color + ";")
 
-        self.canvas1 = QWidget(self.frame1)
+        self.canvas1 = QLabel(self.frame1)
         self.canvas1.setStyleSheet("background-color: white; border-radius: 10px;")
+        self.canvas1.setAlignment(Qt.AlignTop)
 
         self.frame2 = QWidget(self)
         self.frame2.setStyleSheet("background-color: " + self.background_color + ";")
 
-        self.canvas2 = QWidget(self.frame2)
+        self.canvas2 = QLabel(self.frame2)
         self.canvas2.setStyleSheet("background-color: white; border-radius: 10px;")
+
 
         self.resizeEvent = self.resize_frames
 

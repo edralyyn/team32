@@ -47,7 +47,7 @@ class CustomDialog(QDialog):
 
 from PyQt5.QtWidgets import QMessageBox
 
-def collect_data(canvas):
+def collect_data(canvas1):
     result = QMessageBox.question(None, "Warning", "This will collect data. Do you want to proceed?", QMessageBox.Yes | QMessageBox.No)
     if result == QMessageBox.Yes:
         try:
@@ -56,13 +56,13 @@ def collect_data(canvas):
                 topology_table_lines = output.stdout.splitlines()
                 start_index = topology_table_lines.index("Topology Table:") + 1
                 topology_table_text = "\n".join(topology_table_lines[start_index:])
-                canvas.setText("Topology Table:\n" + topology_table_text)
+                canvas1.setText("Topology Table:\n" + topology_table_text)
             else:
-                canvas.clear()
-                canvas.setText(f"Error running scanip.py: {output.stderr}")
+                canvas1.clear()
+                canvas1.setText(f"Error running scanip.py: {output.stderr}")
         except FileNotFoundError:
-            canvas.clear()
-            canvas.setText("Error: scanip.py not found.")
+            canvas1.clear()
+            canvas1.setText("Error: scanip.py not found.")
 
 def forecast():
     result = QMessageBox.question(None, "Warning", "This will run forecasting. Do you want to proceed?", QMessageBox.Yes | QMessageBox.No)
@@ -135,5 +135,4 @@ def show_forecasting_information(predictions, predictions_intermediary, error_ou
     layout = QVBoxLayout()
     layout.addWidget(forecasting_text)
     forecasting_window.setLayout(layout)
-    forecasting_window.resize(600, 400)
     forecasting_window.exec_()
