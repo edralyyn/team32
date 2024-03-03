@@ -2,12 +2,13 @@ import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QHBoxLayout, QWidget, QLabel
 from PyQt5.QtCore import Qt
 from functions import collect_data, forecast
+import time
 
 class ButtonCustomizer:
     @staticmethod
     def customize_button(button):
         button.setStyleSheet(
-        "background-color: #00563B; border-radius: 10px; color: white; border-style: solid; font: bold Arial; padding: 10px 10px;"
+        "background-color: #316FF6; border-radius: 10px; color: black; border-style: solid; font: bold Arial; padding: 10px 30px;"
         )
 
 class GUI(QMainWindow):
@@ -40,15 +41,22 @@ class GUI(QMainWindow):
         self.frame1.setStyleSheet("background-color: " + self.background_color + ";")
 
         self.canvas1 = QLabel(self.frame1)
-        self.canvas1.setStyleSheet("background-color: white; border-radius: 10px;")
+        self.canvas1.setStyleSheet("background-color: white; border-radius: 10px; font-family: Arial; padding: 10px;")
         self.canvas1.setAlignment(Qt.AlignTop)
 
         self.frame2 = QWidget(self)
         self.frame2.setStyleSheet("background-color: " + self.background_color + ";")
 
         self.canvas2 = QLabel(self.frame2)
-        self.canvas2.setStyleSheet("background-color: white; border-radius: 10px;")
+        self.canvas2.setStyleSheet("background-color: white; border-radius: 10px; font-family: Arial;")
+        self.canvas2.setAlignment(Qt.AlignTop)
 
+        self.frame3 = QWidget(self)
+        self.frame3.setStyleSheet("background-color: " + self.background_color + ";")
+
+        self.canvas3 = QLabel(self.frame3)
+        self.canvas3.setStyleSheet("background-color: white; border-radius: 10px; font-family: Arial; padding: 10px; ")
+        self.canvas3.setAlignment(Qt.AlignTop)
 
         self.resizeEvent = self.resize_frames
 
@@ -57,16 +65,18 @@ class GUI(QMainWindow):
         height = self.height()
 
         self.nav_bar.setGeometry(0, 0, width, 50)
-        self.frame1.setGeometry(0, 50, width // 3, height - 50)
+        self.frame1.setGeometry(0, 50, width // 3, (height - 50) // 2)
         self.canvas1.setGeometry(10, 0, self.frame1.width() - 20, self.frame1.height() - 20)
         self.frame2.setGeometry(width // 3, 50, width * 2 // 3, height - 50)
         self.canvas2.setGeometry(10, 0, self.frame2.width() - 20, self.frame2.height() - 20)
+        self.frame3.setGeometry(0, 50 + (height - 50) // 2, width // 3, (height - 50) // 2)
+        self.canvas3.setGeometry(10, 0, self.frame3.width() - 20, self.frame3.height() - 20)
 
     def on_collect_click(self):
         collect_data(self.canvas1)
 
     def on_forecast_click(self):
-        forecast()
+        forecast(self.canvas3)
 
 def main():
     app = QApplication(sys.argv)

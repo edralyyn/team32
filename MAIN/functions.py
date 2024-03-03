@@ -1,8 +1,9 @@
 import subprocess
-from PyQt5.QtWidgets import QMessageBox, QLineEdit, QPushButton, QVBoxLayout, QLabel, QTextEdit, QDialog
+from PyQt5.QtWidgets import QMessageBox, QLineEdit, QPushButton, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QTextEdit, QDialog
 import os
 import predict
 import pandas as pd
+from PyQt5.QtCore import Qt
 
 class CustomDialog(QDialog):
     @staticmethod
@@ -28,29 +29,35 @@ class CustomDialog(QDialog):
         entry = QLineEdit()
         entry.returnPressed.connect(on_ok)
 
-        button_frame = QVBoxLayout()
-        button_frame.addWidget(label)
-        button_frame.addWidget(entry)
+        button_layout = QVBoxLayout()
+        button_layout.addWidget(label)
+        button_layout.addWidget(entry)
 
+        message_label = QLabel()
+        button_layout.addWidget(message_label)
+
+        button_row_layout = QHBoxLayout()
         ok_button = QPushButton("Predict")
         ok_button.clicked.connect(on_ok)
         cancel_button = QPushButton("Cancel")
         cancel_button.clicked.connect(on_cancel)
 
-        button_frame.addWidget(ok_button)
-        button_frame.addWidget(cancel_button)
+        button_row_layout.addWidget(ok_button)
+        button_row_layout.addWidget(cancel_button)
 
-        dialog_window.setLayout(button_frame)
+        button_layout.addLayout(button_row_layout)
+
+        dialog_window.setLayout(button_layout)
 
         if dialog_window.exec_():
             return result[0]
-
-from PyQt5.QtWidgets import QMessageBox
 
 def collect_data(canvas1):
     result = QMessageBox.question(None, "Warning", "This will collect data. Do you want to proceed?", QMessageBox.Yes | QMessageBox.No)
     if result == QMessageBox.Yes:
         try:
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+
             output = subprocess.run(["python3", "scanip.py"], capture_output=True, text=True)
             if output.returncode == 0:
                 topology_table_lines = output.stdout.splitlines()
@@ -63,13 +70,21 @@ def collect_data(canvas1):
         except FileNotFoundError:
             canvas1.clear()
             canvas1.setText("Error: scanip.py not found.")
+            
+        finally:
+            QApplication.restoreOverrideCursor()
 
-def forecast():
+from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt5.QtCore import Qt
+
+def forecast(canvas3):
     result = QMessageBox.question(None, "Warning", "This will run forecasting. Do you want to proceed?", QMessageBox.Yes | QMessageBox.No)
     if result == QMessageBox.Yes:
         num_days_input = CustomDialog.ask_integer("Desired Days", "Enter the number of days for prediction:")
         if num_days_input is not None:
             try:
+                QApplication.setOverrideCursor(Qt.WaitCursor)
+
                 if not predict.dataframes:
                     QMessageBox.information(None, "No Devices Found", "There are no devices found. Unable to perform forecasting.")
                     return
@@ -101,38 +116,34 @@ def forecast():
                     except FileNotFoundError as e:
                         predictions_to_show_intermediary = None
                         error_output = f"Error during forecasting: {e}"
-                        show_forecasting_information(predictions_to_show, predictions_to_show_intermediary, error_output, num_days_input)
+                        show_forecasting_information(predictions_to_show, predictions_to_show_intermediary, error_output, num_days_input, canvas3)
                         return
 
-                show_forecasting_information(predictions_to_show, predictions_to_show_intermediary, None, num_days_input)
+                show_forecasting_information(predictions_to_show, predictions_to_show_intermediary, None, num_days_input, canvas3)
 
             except Exception as e:
-                show_forecasting_information(None, None, f"Error during forecasting: {e}", None)
+                show_forecasting_information(None, None, f"Error during forecasting: {e}", None, canvas3)
+            finally:
+                QApplication.restoreOverrideCursor()
 
-def show_forecasting_information(predictions, predictions_intermediary, error_output, num_days_input):
-    forecasting_window = QDialog()
-    forecasting_window.setWindowTitle("Forecasting Information")
-    forecasting_window.setStyleSheet("background-color: #88a5cd;")
-
-    forecasting_text = QTextEdit()
+def show_forecasting_information(predictions, predictions_intermediary, error_output, num_days_input, canvas3):
+    forecasting_text = ""
 
     if predictions or predictions_intermediary:
         if predictions:
             output = "\n".join([f"The predicted pid after {num_days_input} days for {file_name} is: {predicted_pid}"
                                 for file_name, predicted_pid in predictions.items()])
-            forecasting_text.insertPlainText("Predictions for END DEVICES:\n" + output + "\n\n")
+            forecasting_text += "Predictions for END DEVICES:\n" + output + "\n\n"
 
         if predictions_intermediary:
             output = "\n".join([f"The predicted pid after {num_days_input} days for {file_name} is: {predicted_pid}"
                                 for file_name, predicted_pid in predictions_intermediary.items()])
-            forecasting_text.insertPlainText("Predictions for INTERMEDIARY DEVICES:\n" + output + "\n\n")
+            forecasting_text += "Predictions for INTERMEDIARY DEVICES:\n" + output + "\n\n"
     else:
         if error_output:
-            forecasting_text.insertPlainText(error_output)
+            forecasting_text += error_output
         else:
-            forecasting_text.insertPlainText("No forecasting information available for one or more directories.")
+            forecasting_text += "No forecasting information available for one or more directories."
 
-    layout = QVBoxLayout()
-    layout.addWidget(forecasting_text)
-    forecasting_window.setLayout(layout)
-    forecasting_window.exec_()
+    canvas3.setText(forecasting_text)
+
